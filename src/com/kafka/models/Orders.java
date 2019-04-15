@@ -3,6 +3,7 @@
  */
 package com.kafka.models;
 
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -32,180 +33,316 @@ public class Orders {
     String products;
     String productsCreatedOn;
     String sku;
-    int taxfulTotalPrice;
-    int taxlessTotalPrice;
-    int totalQuantity;
-    int totalUniqueProducts;
+    Long taxfulTotalPrice;
+    Long taxlessTotalPrice;
+    Long totalQuantity;
+    Long totalUniqueProducts;
     String type;
     String user;
     
-    
     public Orders(String value) {
-	
+	String regex = ",(?![^\\(\\[]*[\\]\\)])(?=(?:[^\\\"]*\\\"[^\\\"]*\\\")*[^\\\"]*$)";
+	List<String> inputList = Arrays.asList(value.split(regex));
+	category = Arrays.asList(inputList.get(0).replaceAll("[\\[\\]\"]", "").split(","));
+	currency = inputList.get(1);
+	customerFirstName = inputList.get(2);
+	customerFullName = inputList.get(3);
+	customerGender = inputList.get(4);
+	customerId = inputList.get(5);
+	customerLastName = inputList.get(6);
+	customerPhone = inputList.get(7);
+	dayOfWeek = inputList.get(8);
+	dayOfWeekNumber = Integer.parseInt(inputList.get(9));
+	email = inputList.get(10);
+	geoIpCityName = inputList.get(11);
+	geoIpContinentName = inputList.get(12);
+	geoIpCountryIsoCode = inputList.get(13);
+	geoIpRegionName = inputList.get(14);
+	manufacturer = inputList.get(15);
+	orderDate = inputList.get(16);
+	orderId = inputList.get(17);
+	products = inputList.get(18);
+	productsCreatedOn = inputList.get(19);
+	sku = inputList.get(20);
+	taxfulTotalPrice = Long.parseLong(inputList.get(21).replace("$", ""));
+	taxlessTotalPrice = Long.parseLong(inputList.get(22));
+	totalQuantity = Long.parseLong(inputList.get(23));
+	totalUniqueProducts = Long.parseLong(inputList.get(24));
+	type = inputList.get(25);
+	user = inputList.get(26);
     }
-    
+
+
     public List<String> getCategory() {
         return category;
     }
+
+
     public void setCategory(List<String> category) {
         this.category = category;
     }
+
+
     public String getCurrency() {
         return currency;
     }
+
+
     public void setCurrency(String currency) {
         this.currency = currency;
     }
+
+
     public String getCustomerFirstName() {
         return customerFirstName;
     }
+
+
     public void setCustomerFirstName(String customerFirstName) {
         this.customerFirstName = customerFirstName;
     }
+
+
     public String getCustomerFullName() {
         return customerFullName;
     }
+
+
     public void setCustomerFullName(String customerFullName) {
         this.customerFullName = customerFullName;
     }
+
+
     public String getCustomerGender() {
         return customerGender;
     }
+
+
     public void setCustomerGender(String customerGender) {
         this.customerGender = customerGender;
     }
+
+
     public String getCustomerId() {
         return customerId;
     }
+
+
     public void setCustomerId(String customerId) {
         this.customerId = customerId;
     }
+
+
     public String getCustomerLastName() {
         return customerLastName;
     }
+
+
     public void setCustomerLastName(String customerLastName) {
         this.customerLastName = customerLastName;
     }
+
+
     public String getCustomerPhone() {
         return customerPhone;
     }
+
+
     public void setCustomerPhone(String customerPhone) {
         this.customerPhone = customerPhone;
     }
+
+
     public String getDayOfWeek() {
         return dayOfWeek;
     }
+
+
     public void setDayOfWeek(String dayOfWeek) {
         this.dayOfWeek = dayOfWeek;
     }
+
+
     public int getDayOfWeekNumber() {
         return dayOfWeekNumber;
     }
+
+
     public void setDayOfWeekNumber(int dayOfWeekNumber) {
         this.dayOfWeekNumber = dayOfWeekNumber;
     }
+
+
     public String getEmail() {
         return email;
     }
+
+
     public void setEmail(String email) {
         this.email = email;
     }
+
+
     public String getGeoIpCityName() {
         return geoIpCityName;
     }
+
+
     public void setGeoIpCityName(String geoIpCityName) {
         this.geoIpCityName = geoIpCityName;
     }
+
+
     public String getGeoIpContinentName() {
         return geoIpContinentName;
     }
+
+
     public void setGeoIpContinentName(String geoIpContinentName) {
         this.geoIpContinentName = geoIpContinentName;
     }
+
+
     public String getGeoIpCountryIsoCode() {
         return geoIpCountryIsoCode;
     }
+
+
     public void setGeoIpCountryIsoCode(String geoIpCountryIsoCode) {
         this.geoIpCountryIsoCode = geoIpCountryIsoCode;
     }
+
+
     public String getGeoIpRegionName() {
         return geoIpRegionName;
     }
+
+
     public void setGeoIpRegionName(String geoIpRegionName) {
         this.geoIpRegionName = geoIpRegionName;
     }
+
+
     public String getManufacturer() {
         return manufacturer;
     }
+
+
     public void setManufacturer(String manufacturer) {
         this.manufacturer = manufacturer;
     }
+
+
     public String getOrderDate() {
         return orderDate;
     }
+
+
     public void setOrderDate(String orderDate) {
         this.orderDate = orderDate;
     }
+
+
     public String getOrderId() {
         return orderId;
     }
+
+
     public void setOrderId(String orderId) {
         this.orderId = orderId;
     }
+
+
     public String getProducts() {
         return products;
     }
+
+
     public void setProducts(String products) {
         this.products = products;
     }
+
+
     public String getProductsCreatedOn() {
         return productsCreatedOn;
     }
+
+
     public void setProductsCreatedOn(String productsCreatedOn) {
         this.productsCreatedOn = productsCreatedOn;
     }
+
+
     public String getSku() {
         return sku;
     }
+
+
     public void setSku(String sku) {
         this.sku = sku;
     }
-    public int getTaxfulTotalPrice() {
+
+
+    public Long getTaxfulTotalPrice() {
         return taxfulTotalPrice;
     }
-    public void setTaxfulTotalPrice(int taxfulTotalPrice) {
+
+
+    public void setTaxfulTotalPrice(Long taxfulTotalPrice) {
         this.taxfulTotalPrice = taxfulTotalPrice;
     }
-    public int getTaxlessTotalPrice() {
+
+
+    public Long getTaxlessTotalPrice() {
         return taxlessTotalPrice;
     }
-    public void setTaxlessTotalPrice(int taxlessTotalPrice) {
+
+
+    public void setTaxlessTotalPrice(Long taxlessTotalPrice) {
         this.taxlessTotalPrice = taxlessTotalPrice;
     }
-    public int getTotalQuantity() {
+
+
+    public Long getTotalQuantity() {
         return totalQuantity;
     }
-    public void setTotalQuantity(int totalQuantity) {
+
+
+    public void setTotalQuantity(Long totalQuantity) {
         this.totalQuantity = totalQuantity;
     }
-    public int getTotalUniqueProducts() {
+
+
+    public Long getTotalUniqueProducts() {
         return totalUniqueProducts;
     }
-    public void setTotalUniqueProducts(int totalUniqueProducts) {
+
+
+    public void setTotalUniqueProducts(Long totalUniqueProducts) {
         this.totalUniqueProducts = totalUniqueProducts;
     }
+
+
     public String getType() {
         return type;
     }
+
+
     public void setType(String type) {
         this.type = type;
     }
+
+
     public String getUser() {
         return user;
     }
+
+
     public void setUser(String user) {
         this.user = user;
     }
+
+
     @Override
     public String toString() {
 	return "Orders [category=" + category + ", currency=" + currency
@@ -227,6 +364,7 @@ public class Orders {
 		+ totalUniqueProducts + ", type=" + type + ", user=" + user
 		+ "]";
     }
+    
     
     
 }

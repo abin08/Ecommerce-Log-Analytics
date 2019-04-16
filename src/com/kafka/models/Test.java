@@ -11,15 +11,25 @@ public class Test {
 //	List<String> list = Arrays.asList(value.split(regex));
 	
 	
-	String regex = "[\\[\\]\"]";
+	/*String regex = "[\\[\\]\"]";
 	String value = "\"[\"\"Women's Shoes\"\",\"\"Women's Clothing\"\"]\"";
 	System.out.println(value);
 	List<String> category = Arrays.asList(value.replaceAll("[\\[\\]\"]", "").split(","));
 	
 	for(String str : category) {
 	    System.out.println(str);
-	}
-	
+	}*/
+	String str = "$58.9 ";
+	System.out.println(str);
+	Double number = getDouble(str.replace("$", ""));
+	System.out.println(number);
     }
-  
+    private static Double getDouble(String text) {
+	text = text.trim();
+	Double number = 0.0;
+	try {
+	    number = Double.parseDouble(text);
+	}catch (Exception e) {}
+	return number;
+    }
 }

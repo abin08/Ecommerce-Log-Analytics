@@ -104,7 +104,6 @@ public class StreamProcessor {
 	malePercentage.join(femalePercentage, (male, female) -> "Male: "+male +","+"Female: "+female )
 	.toStream()
 	.to("salesByGender" , Produced.with(Serdes.String(), Serdes.String()));
-//	.foreach((key,value) -> {System.out.println("Sales by Gender : " + key+" "+value);});
 	
 //	total revenue
 	KTable<String, Double> totalRevenue = sourceStream.map(new KeyValueMapper<String, Orders, KeyValue<String,Double>>() {
@@ -127,13 +126,11 @@ public class StreamProcessor {
 	
 	totalRevenue.toStream()
 	.to("totalRevenue", Produced.with(Serdes.String(), Serdes.Double()));
-//	.foreach((key,value) -> {System.out.println("Total Revenue : "+key+" "+value);});
 	
 //	average sales price
 	totalRevenue.join(totalCount, (sum,count) -> sum / count.doubleValue())
 	.toStream()
 	.to("averageSalesPrice",Produced.with(Serdes.String(), Serdes.Double()));
-//	.foreach((key,value) -> {System.out.println("Average sales price : "+key+" "+value);});
 	
 //	total sold quantity
 	KTable<String, Integer> totalQuantity = sourceStream.map(new KeyValueMapper<String, Orders, KeyValue<String,Integer>>() {
@@ -158,7 +155,6 @@ public class StreamProcessor {
 	totalQuantity.join(totalCount, (sum, count) -> sum.intValue() / count.intValue())
 	.toStream()
 	.to("averageSoldQuantity", Produced.with(Serdes.String(), Serdes.Integer()));
-//	.foreach((key,value) -> {System.out.println("Average sold quantity : "+key+" "+value);});
 	
 //	sales by category
 	sourceStream.flatMap(new KeyValueMapper<String, Orders, Iterable<KeyValue<String,Integer>>>() {
@@ -188,7 +184,6 @@ public class StreamProcessor {
 	}, Materialized.with(Serdes.String(), Serdes.Integer()))
 	.toStream()
 	.to("salesByCategory", Produced.with(Serdes.String(), Serdes.Integer()));
-//	.foreach((key,value) -> {System.out.println("Sales By category : "+key+" "+value);});
 	
 	KafkaStreams kafkaStreams = new KafkaStreams(builder.build(), streamsConfig);
 	kafkaStreams.cleanUp();

@@ -10,11 +10,14 @@ import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.StreamsConfig;
+import org.apache.kafka.streams.kstream.Aggregator;
+import org.apache.kafka.streams.kstream.Initializer;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.KTable;
 import org.apache.kafka.streams.kstream.KeyValueMapper;
+import org.apache.kafka.streams.kstream.Materialized;
 import org.apache.kafka.streams.kstream.Predicate;
-import org.apache.kafka.streams.kstream.Produced;
+import org.apache.kafka.streams.kstream.Serialized;
 
 import com.kafka.models.Orders;
 
@@ -57,69 +60,97 @@ public class StreamProcessor {
 	});
 	
 //	total number of Male
-	KStream<String, Orders> maleCustomer = sourceStream.filter(new Predicate<String, Orders>() {
+	KTable<String, Long> maleCustomerCount = sourceStream.filter(new Predicate<String, Orders>() {
 	    @Override
 	    public boolean test(String key, Orders value) {
 	        return value.getCustomerGender().equalsIgnoreCase("Male");
 	    }
-	});
-	KTable<String, Long> maleCustomerCount = maleCustomer.map(new KeyValueMapper<String, Orders, KeyValue<String,String>>() {
+	}).map(new KeyValueMapper<String, Orders, KeyValue<String,String>>() {
 	    @Override
 	    public KeyValue<String, String> apply(String key, Orders value) {
-	        return new KeyValue<String, String>("total_Male", value.getCustomerGender());
+	        return new KeyValue<String, String>("total", value.getCustomerGender());
 	    }
 	})
 	.groupByKey()
 	.count();
 	
 //	total number of Female
-	KStream<String, Orders> femaleCustomer = sourceStream.filter(new Predicate<String, Orders>() {
+	KTable<String, Long> femaleCustomerCount = sourceStream.filter(new Predicate<String, Orders>() {
 	    @Override
 	    public boolean test(String key, Orders value) {
 	        return value.getCustomerGender().equalsIgnoreCase("Female");
 	    }
-	});
-	KTable<String, Long> femaleCustomerCount = femaleCustomer.map(new KeyValueMapper<String, Orders, KeyValue<String,String>>() {
+	}).map(new KeyValueMapper<String, Orders, KeyValue<String,String>>() {
 	    @Override
 	    public KeyValue<String, String> apply(String key, Orders value) {
-	        return new KeyValue<String, String>("total_Female", value.getCustomerGender());
+	        return new KeyValue<String, String>("total", value.getCustomerGender());
 	    }
 	})
 	.groupByKey()
 	.count();
 	
 //	find male customer percentage
-	KTable<String, String> malePercentage = maleCustomerCount.join(totalCount, (maleCount,totalCounts) -> ((maleCount.longValue()/totalCounts.longValue())*100) + "");
-	
-	malePercentage.toStream().to("malePercentage");
-		
-	/*.toStream()
-	.map(new KeyValueMapper<String, Long, KeyValue<String,String>>() {
-	    @Override
-	    public KeyValue<String, String> apply(String key, Long value) {
-	        return new KeyValue<String, String>("Male", value+"%");
-	    }
-	}).foreach((key,value) -> {System.out.println(key+" "+value);});*/
+	KTable<String, String> malePercentage = maleCustomerCount.join(totalCount, (maleCount,totalCounts)
+		->((maleCount.doubleValue()/totalCounts.doubleValue()) * 100)+"%");
 	
 //	find female customer percentage
-	KTable<String, String> femalePercentage = femaleCustomerCount.join(totalCount, (femaleCount,totalCounts) -> ((femaleCount.longValue()/totalCounts.longValue())*100) + "");
-	/*.toStream()
-	.map(new KeyValueMapper<String, Long, KeyValue<String,String>>() {
-	    @Override
-	    public KeyValue<String, String> apply(String key, Long value) {
-	        return new KeyValue<String, String>("Female", value+"%");
-	    }
-	}).foreach((key,value) -> {System.out.println(key+" "+value);});*/
+	KTable<String, String> femalePercentage = femaleCustomerCount.join(totalCount, (femaleCount,totalCounts) 
+		-> ((femaleCount.doubleValue()/totalCounts.doubleValue()) * 100) + "%");
 	
 	
-	
-	malePercentage.join(femalePercentage, (male, female) -> "Male: "+male +"%,"+"Female: "+female+"%" )
+	malePercentage.join(femalePercentage, (male, female) -> "Male: "+male +","+"Female: "+female )
 	.toStream()
-	.to("salesByGender", Produced.with(Serdes.String(), Serdes.String()));
+	.foreach((key,value) -> {System.out.println("Sales by Gender : " + key+" "+value);});
 	
+//	total revenue
+	KTable<String, Double> totalRevenue = sourceStream.map(new KeyValueMapper<String, Orders, KeyValue<String,Double>>() {
+	    @Override
+	    public KeyValue<String, Double> apply(String key, Orders value) {
+	        return new KeyValue<String, Double>("total", value.getTaxfulTotalPrice());
+	    }
+	}).groupByKey(Serialized.with(Serdes.String(), Serdes.Double()))
+	.aggregate(new Initializer<Double>() {
+	    @Override
+	    public Double apply() {
+		return 0.0;
+	    }
+	}, new Aggregator<String, Double, Double>() {
+	    @Override
+	    public Double apply(String key, Double value, Double aggregate) {
+		return aggregate+ value;
+	    }
+	}, Materialized.with(Serdes.String(), Serdes.Double()));
 	
-//	maleCustomerCount.foreach((key,value) -> {System.out.println(key+" "+value);});
-//	femaleCustomerCount.foreach((key,value) -> {System.out.println(key+" "+value);});
+	totalRevenue.toStream().foreach((key,value) -> {System.out.println("Total Revenue : "+key+" "+value);});
+	
+//	average sales price
+	totalRevenue.join(totalCount, (sum,count) -> sum / count.doubleValue())
+	.toStream()
+	.foreach((key,value) -> {System.out.println("Average sales price : "+key+" "+value);});
+	
+//	total sold quantity
+	KTable<String, Integer> totalQuantity = sourceStream.map(new KeyValueMapper<String, Orders, KeyValue<String,Integer>>() {
+	    @Override
+	    public KeyValue<String, Integer> apply(String key, Orders value) {
+	        return new KeyValue<String, Integer>("total", value.getTotalQuantity());
+	    }
+	}).groupByKey(Serialized.with(Serdes.String(), Serdes.Integer()))
+	.aggregate(new Initializer<Integer>() {
+	    @Override
+	    public Integer apply() {
+		return 0;
+	    }
+	}, new Aggregator<String, Integer, Integer>() {
+	    @Override
+	    public Integer apply(String key, Integer value, Integer aggregate) {
+		return aggregate+ value;
+	    }
+	}, Materialized.with(Serdes.String(), Serdes.Integer()));
+	
+//	average sold quantity
+	totalQuantity.join(totalCount, (sum, count) -> sum.intValue() / count.intValue())
+	.toStream()
+	.foreach((key,value) -> {System.out.println("Average sold quantity : "+key+" "+value);});
 	
 	KafkaStreams kafkaStreams = new KafkaStreams(builder.build(), streamsConfig);
 	kafkaStreams.cleanUp();
